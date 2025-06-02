@@ -1,52 +1,113 @@
 const express = require("express");
+const mongoose = require("mongoose");
 const { authMiddleware } = require("../middleware");
-const { Account } = require("../db");
-const { default: mongoose } = require("mongoose");
+const { Account, User } = require("../db");
 
 const router = express.Router();
 
-router.get("/balance", authMiddleware, async (req, res) => {
-  const account = await Account.findOne({
-    userId: req.userId,
-  });
-  res.status(200).json({
-    balance: account.balance,
-  });
+router.get("/balance", authMiddleware, async (req, res, next) => {
+  try {
+    const account = await Account.findOne({
+      userId: req.userId
+    }).lean();
+    
+    if (!account) {
+      return res.status(404).json({
+        success: false,
+        message: "Account not found"
+      });
+    }
+    
+    res.json({
+      success: true,
+      balance: account.balance
+    });
+  } catch (error) {
+    next(error);
+  }
 });
 
-router.post("/transfer", authMiddleware, async (req, res) => {
-
+router.post("/transfer", authMiddleware, async (req, res, next) => {
+  const session = await mongoose.startSession();
+  
   try {
-      const session = await mongoose.startSession();
-      session.startTransaction();
-      
-      const { amount, to } = req.body;
-      const account = await Account.findOne({ userId: req.userId }).session(
-        session
-      );
-      
-      if (!account || account.balance < amount) {
-        await session.abortTransaction();
-      return res.status(400).json({
-        message: "Insufficient Balance",
-      });
-    }
-    const toaccount = await Account.findOne({ userId: to }).session(session);
-    if (!toaccount) {
+    await session.startTransaction();
+    
+    const { amount, to } = req.body;
+    
+    // Validate input
+    if (!amount || amount <= 0) {
       await session.abortTransaction();
       return res.status(400).json({
-        message: "Invalid account",
+        success: false,
+        message: "Invalid amount"
       });
     }
-    await Account.updateOne({userId: req.userId}, {$inc: {balance: -amount}}).session(session);
-    await Account.updateOne({userId: to}, {$inc: {balance: amount}}).session(session);
+    
+    if (!mongoose.Types.ObjectId.isValid(to)) {
+      await session.abortTransaction();
+      return res.status(400).json({
+        success: false,
+        message: "Invalid recipient ID"
+      });
+    }
+    
+    if (to === req.userId.toString()) {
+      await session.abortTransaction();
+      return res.status(400).json({
+        success: false,
+        message: "Cannot transfer to yourself"
+      });
+    }
+    
+    // Check sender account
+    const senderAccount = await Account.findOne({ userId: req.userId }).session(session);
+    if (!senderAccount || senderAccount.balance < amount) {
+      await session.abortTransaction();
+      return res.status(400).json({
+        success: false,
+        message: "Insufficient balance"
+      });
+    }
+    
+    // Check recipient account
+    const recipientAccount = await Account.findOne({ userId: to }).session(session);
+    if (!recipientAccount) {
+      await session.abortTransaction();
+      return res.status(400).json({
+        success: false,
+        message: "Recipient account not found"
+      });
+    }
+    
+    // Perform transfer
+    await Account.updateOne(
+      { userId: req.userId },
+      { $inc: { balance: -amount } }
+    ).session(session);
+    
+    await Account.updateOne(
+      { userId: to },
+      { $inc: { balance: amount } }
+    ).session(session);
     
     await session.commitTransaction();
+    
     res.json({
-      message: "transfer Successful"
-    })
-  } catch(err) {
-    return res.status(400).json({message: "Server not Found"});
+      success: true,
+      message: "Transfer successful",
+      data: {
+        amount,
+        from: req.userId,
+        to,
+        timestamp: new Date()
+      }
+    });
+  } catch (error) {
+    await session.abortTransaction();
+    next(error);
+  } finally {
+    await session.endSession();
   }
 });
 
