@@ -50,7 +50,6 @@ const accountsSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
-// Indexes for performance
 userSchema.index({ username: 1 });
 userSchema.index({ firstName: 1, lastName: 1 });
 accountsSchema.index({ userId: 1 });

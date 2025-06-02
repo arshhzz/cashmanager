@@ -40,7 +40,7 @@ export const Users = () => {
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       fetchUsers(filter);
-    }, 300); // Debounce search
+    }, 300); 
 
     return () => clearTimeout(timeoutId);
   }, [filter, fetchUsers]);

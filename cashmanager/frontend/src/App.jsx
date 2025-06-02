@@ -1,16 +1,15 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { Signup } from "./pages/Signup";
-import { Signin } from "./pages/Signin";
+import { Signup } from "./pages/signup";
+import { Signin } from "./pages/signin";
 import { Dashboard } from "./pages/Dashboard";
-import { Sendmoney } from "./pages/SendMoney";
+import { Sendmoney } from "./pages/Sendmoney";
 
-// Protected Route Component
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem('token');
   return token ? children : <Navigate to="/signin" replace />;
 };
 
-// Public Route Component (redirect to dashboard if already authenticated)
+
 const PublicRoute = ({ children }) => {
   const token = localStorage.getItem('token');
   return !token ? children : <Navigate to="/dashboard" replace />;

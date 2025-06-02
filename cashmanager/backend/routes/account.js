@@ -35,7 +35,6 @@ router.post("/transfer", authMiddleware, async (req, res, next) => {
     
     const { amount, to } = req.body;
     
-    // Validate input
     if (!amount || amount <= 0) {
       await session.abortTransaction();
       return res.status(400).json({
@@ -60,7 +59,6 @@ router.post("/transfer", authMiddleware, async (req, res, next) => {
       });
     }
     
-    // Check sender account
     const senderAccount = await Account.findOne({ userId: req.userId }).session(session);
     if (!senderAccount || senderAccount.balance < amount) {
       await session.abortTransaction();
@@ -70,7 +68,6 @@ router.post("/transfer", authMiddleware, async (req, res, next) => {
       });
     }
     
-    // Check recipient account
     const recipientAccount = await Account.findOne({ userId: to }).session(session);
     if (!recipientAccount) {
       await session.abortTransaction();
@@ -80,7 +77,6 @@ router.post("/transfer", authMiddleware, async (req, res, next) => {
       });
     }
     
-    // Perform transfer
     await Account.updateOne(
       { userId: req.userId },
       { $inc: { balance: -amount } }

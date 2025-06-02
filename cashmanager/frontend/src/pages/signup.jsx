@@ -23,7 +23,7 @@ export const Signup = () => {
       ...prev,
       [field]: e.target.value
     }));
-    setError(""); // Clear error when user types
+    setError(""); 
   };
 
   const handleSignup = async () => {
