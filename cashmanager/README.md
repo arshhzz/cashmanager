@@ -1,57 +1,58 @@
+# 💸 CashManager – Digital Wallet Application
 
-# CASHMANAGER
-## Digital Wallet Application
+CashManager is a secure, full-stack digital wallet application that enables users to register, manage their accounts, and perform real-time money transfers. Designed using modern web technologies and security-first architecture, this project demonstrates robust authentication, API validation, and testing workflows.
 
-#### A full-stack digital wallet application built with React.js frontend and Node.js/Express backend, featuring secure user authentication, account management, and money transfers.
+---
 
 ## 🚀 Features
 
+### 👤 User Management
+- Secure JWT-based registration and login
+- Profile management with user info update
+- Zod schema validation for email & inputs
+- Password hashing with bcrypt + salting
 
-### User Management
-User Registration & Authentication - Secure signup/signin with JWT tokens
-Profile Management - Update user information
-Email Validation - Proper email format validation
-Password Security - Bcrypt hashing with salt rounds
+### 💼 Account Management
+- Auto-provisioned digital wallet per user
+- Real-time balance inquiry
+- Randomized initial balance (₹1 – ₹10,000)
 
-### Account Management
+### 💸 Money Transfers
+- Peer-to-peer money transfers with auth
+- ACID-compliant transactions
+- Balance checks and error handling
+- Invalid/insufficient transaction protection
 
-Digital Wallet - Each user gets a digital account with balance
-Balance Inquiry - Check account balance
-Random Initial Balance - New users get random starting balance (1-10,000)
+---
 
-### Money Transfer
+## 🔐 Security Highlights
+- JWT authentication & authorization
+- Bcrypt for encrypted password storage
+- Zod input schema enforcement
+- Rate limiting for sensitive endpoints
+- CORS protection and HTTP headers via Helmet
 
-Secure Transfers - Transfer money between users
-Transaction Validation - Prevents invalid transfers
-Database Transactions - ACID compliance for financial operations
-Balance Verification - Insufficient balance protection
+---
 
-### Security Features
+## 🧪 Testing & CI/CD
+- **Jest** unit tests for middleware & logic
+- Mocked JWT and in-memory MongoDB
+- GitHub Actions for CI/CD automation
+- Test coverage enforcement (80%+ target)
 
-JWT Authentication - Secure token-based authentication
-Rate Limiting - Protection against API abuse
-CORS Configuration - Cross-origin resource sharing
-Helmet Security - HTTP headers security
-Input Validation - Zod schema validation
-Password Hashing - Bcrypt encryption
+---
 
-### 🛠️ Tech Stack
-#### Backend
+## 🛠️ Tech Stack
 
-Node.js - Runtime environment
-Express.js - Web framework
-MongoDB - Database with Mongoose ODM
-JWT - Authentication tokens
-Bcrypt - Password hashing
-Zod - Schema validation
-Helmet - Security middleware
-CORS - Cross-origin requests
-Express Rate Limit - API rate limiting
+### 🔹 Backend
+- Node.js, Express.js
+- MongoDB + Mongoose
+- JWT, Bcrypt, Zod, Helmet, CORS, Express-Rate-Limit
+- Jest for testing
 
-#### Frontend
+### 🔹 Frontend
+- React.js + Vite
+- React Router, Context API
+- Tailwind CSS, Axios, ESLint
 
-React.js - UI framework
-React Router - Client-side routing
-Axios - HTTP requests
-Tailwind CSS - Styling framework
-Context API - State management
+---
