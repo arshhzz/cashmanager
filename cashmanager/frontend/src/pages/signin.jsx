@@ -5,7 +5,7 @@ import { InputBox } from "../components/InputBox";
 import { SubHeading } from "../components/SubHeading";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import api from "../utils/api";
+import { authAPI } from "../services/api";
 
 export const Signin = () => {
   const navigate = useNavigate();
@@ -34,18 +34,25 @@ export const Signin = () => {
       setLoading(true);
       setError("");
       
-      const response = await api.post("/api/v1/user/signin", formData);
+      const response = await authAPI.signin(formData);
       
       if (response.data.success && response.data.token) {
         localStorage.setItem("token", response.data.token);
-        if (response.data.user) {
-          localStorage.setItem("user", JSON.stringify(response.data.user));
+        if (response.data.user && response.data.user._id) {
+          localStorage.setItem("userId", response.data.user._id);
         }
-        navigate("/dashboard");
+        
+        setError("");
+        
+        navigate("/dashboard", { replace: true });
+      } else {
+        setError("Invalid response from server");
       }
     } catch (error) {
-      const errorMessage = error.response?.data?.message || "Invalid credentials. Please try again.";
+      const errorMessage = error.response?.data?.message || "Signin failed. Please try again.";
       setError(errorMessage);
+      localStorage.removeItem("token");
+      localStorage.removeItem("userId");
     } finally {
       setLoading(false);
     }

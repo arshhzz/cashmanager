@@ -1,12 +1,14 @@
 {
-  "name": "backend",
+  "name": "cashmanager-backend",
   "version": "1.0.0",
-  "description": "",
+  "description": "Backend for Cash Manager application",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest",
+    "lint": "eslint .",
+    "check-deps": "node scripts/check-dependencies.js"
   },
   "keywords": [
     "payment",
@@ -18,16 +20,25 @@
   "license": "ISC",
   "dependencies": {
     "bcrypt": "^5.1.1",
+    "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
-    "dotenv": "^16.5.0",
-    "express": "^4.21.2",
-    "express-rate-limit": "^6.11.2",
-    "helmet": "^6.2.0",
+    "dotenv": "^16.4.5",
+    "express": "^4.18.3",
+    "express-rate-limit": "^7.1.5",
+    "express-validator": "^7.2.1",
+    "helmet": "^7.1.0",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^7.8.7",
-    "zod": "^3.25.47"
+    "mongoose": "^8.2.1",
+    "morgan": "^1.10.0",
+    "winston": "^3.12.0",
+    "zod": "^3.22.4"
   },
   "devDependencies": {
-    "nodemon": "^3.1.10"
+    "eslint": "^8.57.0",
+    "jest": "^29.7.0",
+    "nodemon": "^3.1.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }

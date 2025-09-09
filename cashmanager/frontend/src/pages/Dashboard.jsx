@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Appbar } from "../components/Appbar";
 import { Balance } from "../components/Balance";
 import { Users } from "../components/Users";
-import api from "../utils/api";
+import { authAPI, transactionAPI, accountAPI } from "../services/api";
+import Transactions from '../components/Transactions';
 
 export const Dashboard = () => {
   const [balance, setBalance] = useState(0);
@@ -19,27 +20,62 @@ export const Dashboard = () => {
       return;
     }
 
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
+    const initializeDashboard = async () => {
+      try {
+        setLoading(true);
+        setError("");
+        await Promise.all([
+          fetchUserProfile(),
+          fetchBalance()
+        ]);
+      } catch (err) {
+        setError("Failed to initialize dashboard");
+        console.error("Dashboard initialization error:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    fetchBalance();
+    initializeDashboard();
   }, [navigate]);
+
+  const fetchUserProfile = async () => {
+    try {
+      const response = await authAPI.getProfile();
+      setUser(response.data.user);
+    } catch (error) {
+      console.error("Failed to fetch user profile:", error);
+      throw error; // Propagate error to be handled by the caller
+    }
+  };
 
   const fetchBalance = async () => {
     try {
+      const response = await accountAPI.getBalance();
+      setBalance(response.data.balance);
+    } catch (error) {
+      console.error("Failed to fetch balance:", error);
+      throw error; // Propagate error to be handled by the caller
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('userId');
+    navigate('/signin');
+  };
+
+  const handleRetry = async () => {
+    try {
       setLoading(true);
       setError("");
-      
-      const response = await api.get("/api/v1/account/balance");
-      
-      if (response.data.success) {
-        setBalance(response.data.balance);
-      }
-    } catch (error) {
-      setError("Failed to fetch balance");
-      console.error("Failed to fetch balance:", error);
+      await Promise.all([
+        fetchUserProfile(),
+        fetchBalance()
+      ]);
+    } catch (err) {
+      setError("Failed to refresh dashboard data");
+      console.error("Dashboard refresh error:", err);
     } finally {
       setLoading(false);
     }
@@ -64,7 +100,7 @@ export const Dashboard = () => {
           <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-md">
             {error}
             <button 
-              onClick={fetchBalance}
+              onClick={handleRetry}
               className="ml-2 underline hover:no-underline"
             >
               Retry
@@ -74,6 +110,7 @@ export const Dashboard = () => {
         
         <Balance value={balance} />
         <Users />
+        <Transactions />
       </div>
     </div>
   );

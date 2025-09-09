@@ -1,9 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { Button } from "./Button";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+import { authAPI } from "../services/api";
 
 export const Users = () => {
   const [users, setUsers] = useState([]);
@@ -16,15 +14,7 @@ export const Users = () => {
       setLoading(true);
       setError("");
       
-      const token = localStorage.getItem("token");
-      const response = await axios.get(
-        `${API_BASE_URL}/api/v1/user/bulk?filter=${searchFilter}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        }
-      );
+      const response = await authAPI.getUsers(searchFilter);
       
       if (response.data.success) {
         setUsers(response.data.users || []);
@@ -61,6 +51,12 @@ export const Users = () => {
       {error && (
         <div className="text-red-500 text-sm mb-4 p-2 bg-red-50 rounded">
           {error}
+          <button 
+            onClick={() => fetchUsers(filter)}
+            className="ml-2 underline hover:no-underline"
+          >
+            Retry
+          </button>
         </div>
       )}
 

@@ -5,7 +5,7 @@ import { Heading } from "../components/Heading";
 import { InputBox } from "../components/InputBox";
 import { SubHeading } from "../components/SubHeading";
 import { useNavigate } from "react-router-dom";
-import api from "../utils/api";
+import { authAPI } from "../services/api";
 
 export const Signup = () => {
   const [formData, setFormData] = useState({
@@ -36,10 +36,13 @@ export const Signup = () => {
       setLoading(true);
       setError("");
       
-      const response = await api.post("/api/v1/user/signup", formData);
+      const response = await authAPI.signup(formData);
       
       if (response.data.success && response.data.token) {
         localStorage.setItem("token", response.data.token);
+        // Get user ID from the token
+        const tokenData = JSON.parse(atob(response.data.token.split('.')[1]));
+        localStorage.setItem("userId", tokenData.userId);
         navigate("/dashboard");
       }
     } catch (error) {

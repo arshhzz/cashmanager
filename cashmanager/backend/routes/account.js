@@ -1,7 +1,9 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const { authMiddleware } = require("../middleware");
-const { Account, User } = require("../db");
+const { Account, User, Transaction } = require("../db");
+const bcrypt = require("bcrypt");
+const z = require("zod");
 
 const router = express.Router();
 
@@ -23,6 +25,40 @@ router.get("/balance", authMiddleware, async (req, res, next) => {
       balance: account.balance
     });
   } catch (error) {
+    console.error('Error fetching balance:', error);
+    next(error);
+  }
+});
+
+router.get("/transactions", authMiddleware, async (req, res, next) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const transactions = await Transaction.find({
+      $or: [
+        { from: req.userId },
+        { to: req.userId }
+      ]
+    })
+    .sort({ timestamp: -1 })
+    .skip(skip)
+    .limit(limit)
+    .populate('from to', 'firstName lastName username')
+    .lean();
+
+    res.json({
+      success: true,
+      transactions,
+      pagination: {
+        page,
+        limit,
+        hasMore: transactions.length === limit
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching transactions:', error);
     next(error);
   }
 });
@@ -33,25 +69,19 @@ router.post("/transfer", authMiddleware, async (req, res, next) => {
   try {
     await session.startTransaction();
     
-    const { amount, to } = req.body;
-    
-    if (!amount || amount <= 0) {
-      await session.abortTransaction();
-      return res.status(400).json({
-        success: false,
-        message: "Invalid amount"
-      });
-    }
-    
-    if (!mongoose.Types.ObjectId.isValid(to)) {
-      await session.abortTransaction();
-      return res.status(400).json({
-        success: false,
+    const transferSchema = z.object({
+      to: z.string().refine((val) => mongoose.Types.ObjectId.isValid(val), {
         message: "Invalid recipient ID"
-      });
-    }
+      }),
+      amount: z.number().positive("Amount must be positive")
+    });
+
+    const validatedData = transferSchema.parse({
+      to: req.body.to,
+      amount: parseFloat(req.body.amount)
+    });
     
-    if (to === req.userId.toString()) {
+    if (validatedData.to === req.userId.toString()) {
       await session.abortTransaction();
       return res.status(400).json({
         success: false,
@@ -60,7 +90,15 @@ router.post("/transfer", authMiddleware, async (req, res, next) => {
     }
     
     const senderAccount = await Account.findOne({ userId: req.userId }).session(session);
-    if (!senderAccount || senderAccount.balance < amount) {
+    if (!senderAccount) {
+      await session.abortTransaction();
+      return res.status(404).json({
+        success: false,
+        message: "Sender account not found"
+      });
+    }
+
+    if (senderAccount.balance < validatedData.amount) {
       await session.abortTransaction();
       return res.status(400).json({
         success: false,
@@ -68,39 +106,58 @@ router.post("/transfer", authMiddleware, async (req, res, next) => {
       });
     }
     
-    const recipientAccount = await Account.findOne({ userId: to }).session(session);
+    const recipientAccount = await Account.findOne({ userId: validatedData.to }).session(session);
     if (!recipientAccount) {
       await session.abortTransaction();
-      return res.status(400).json({
+      return res.status(404).json({
         success: false,
         message: "Recipient account not found"
       });
     }
     
+    // Update balances
     await Account.updateOne(
       { userId: req.userId },
-      { $inc: { balance: -amount } }
+      { $inc: { balance: -validatedData.amount } }
     ).session(session);
     
     await Account.updateOne(
-      { userId: to },
-      { $inc: { balance: amount } }
+      { userId: validatedData.to },
+      { $inc: { balance: validatedData.amount } }
     ).session(session);
-    
+
+    // Create transaction record
+    const [transaction] = await Transaction.create([{
+      from: req.userId,
+      to: validatedData.to,
+      amount: validatedData.amount,
+      timestamp: new Date()
+    }], { session });
+
     await session.commitTransaction();
+    
+    // Populate the transaction with user details
+    const populatedTransaction = await Transaction.findById(transaction._id)
+      .populate('from to', 'firstName lastName username')
+      .lean();
     
     res.json({
       success: true,
       message: "Transfer successful",
-      data: {
-        amount,
-        from: req.userId,
-        to,
-        timestamp: new Date()
-      }
+      data: populatedTransaction
     });
   } catch (error) {
     await session.abortTransaction();
+    console.error('Transfer error:', error);
+    
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid input data",
+        errors: error.errors
+      });
+    }
+    
     next(error);
   } finally {
     await session.endSession();

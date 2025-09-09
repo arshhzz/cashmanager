@@ -112,7 +112,7 @@ userrouter.post("/signin", async (req, res, next) => {
       success: true,
       token,
       user: {
-        id: user._id,
+        _id: user._id,
         username: user.username,
         firstName: user.firstName,
         lastName: user.lastName
@@ -199,6 +199,25 @@ userrouter.get("/bulk", authMiddleware, async (req, res, next) => {
         limit,
         hasMore: users.length === limit
       }
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+userrouter.get("/profile", authMiddleware, async (req, res, next) => {
+  try {
+    const user = await User.findById(req.userId).select('-password');
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found"
+      });
+    }
+    
+    res.json({
+      success: true,
+      user
     });
   } catch (error) {
     next(error);
