@@ -5,7 +5,10 @@ const config = {
   MONGODB_URL: process.env.MONGODB_URL || 'mongodb://localhost:27017/cashmanager',
   JWT_SECRET: process.env.JWT_SECRET || 'your-secret-key',
   BCRYPT_ROUNDS: parseInt(process.env.BCRYPT_ROUNDS) || 10,
-  FRONTEND_URL: process.env.FRONTEND_URL || 'http://localhost:5173'
+  FRONTEND_URLS: [
+    "http://localhost:5173",
+    "https://cashmanager-1.onrender.com"
+  ]
 };
 
 // Validate required environment variables

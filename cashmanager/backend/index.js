@@ -11,10 +11,19 @@ const { PORT } = require('./config');
 const logger = require('./utils/logger');
 
 const app = express();
-
+const { FRONTEND_URLS } = require('./config');
 // Security middleware
 const corsOptions = {
-  origin: process.env.FRONTEND_URL,
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl)
+    if (!origin) return callback(null, true);
+
+    if (FRONTEND_URLS.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("CORS not allowed for this origin: " + origin), false);
+    }
+  },
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true
