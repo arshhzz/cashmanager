@@ -13,11 +13,19 @@ const logger = require('./utils/logger');
 const app = express();
 
 // Security middleware
-app.use(helmet());
-app.use(cors({
+const corsOptions = {
   origin: process.env.FRONTEND_URL,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true
-}));
+};
+
+// Security middleware
+app.use(helmet());
+app.use(cors(corsOptions));
+
+// Explicitly handle preflight with same config
+app.options("*", cors(corsOptions));
 
 // Rate limiting
 const limiter = rateLimit({
