@@ -241,3 +241,9 @@
 {"level":"info","message":"MongoDB Atlas connected successfully","timestamp":"2025-09-09T14:53:01.660Z"}
 {"level":"info","message":"Server running on port 3000","timestamp":"2025-09-09T14:53:01.665Z"}
 {"level":"info","message":"Health check available at http://localhost:3000/health","timestamp":"2025-09-09T14:53:01.666Z"}
+{"level":"info","message":"Attempting to connect to MongoDB Atlas...","timestamp":"2025-09-09T15:07:45.295Z"}
+{"level":"info","message":"MongoDB Atlas connected successfully","timestamp":"2025-09-09T15:07:49.126Z"}
+{"level":"info","message":"Server running on port 3000","timestamp":"2025-09-09T15:07:49.135Z"}
+{"level":"info","message":"Health check available at http://localhost:3000/health","timestamp":"2025-09-09T15:07:49.144Z"}
+{"level":"info","message":"::1 - - [09/Sep/2025:15:12:50 +0000] \"POST /api/v1/user/signin HTTP/1.1\" 401 49 \"-\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36\"","timestamp":"2025-09-09T15:12:50.926Z"}
+{"level":"info","message":"::1 - - [09/Sep/2025:15:13:00 +0000] \"POST /api/v1/user/signin HTTP/1.1\" 401 49 \"-\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36\"","timestamp":"2025-09-09T15:13:00.193Z"}
